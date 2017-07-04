@@ -1,26 +1,13 @@
 import * as events from 'events'
-import * as uuid from 'uuid'
+import * as uuid from 'uuidjs'
 
 import { merge } from 'lodash'
+
+import { Dictionary } from '@nofrills/collections'
 import { Debug } from './Interceptors'
-
-export interface Log {
-  readonly id: string
-  readonly tag: string
-  readonly timestamp: number
-  namespace: string
-  parameters: any[]
-}
-
-export type Filter = (log: Log) => boolean
-export type Interceptor = (log: Log) => Log
-
-export interface Options {
-  filters?: Filter[]
-  interceptors?: Interceptor[]
-  namespace: string
-  separator?: string
-}
+import { Log } from './Log'
+import { Options } from './Options'
+import { Filter, Interceptor } from './Types'
 
 const defaults: Options = {
   filters: [],
@@ -29,7 +16,7 @@ const defaults: Options = {
   separator: ':'
 }
 
-const types: { [key: string]: string } = {
+const types: Dictionary<string> = {
   debug: 'debug',
   error: 'error',
   info: 'info',
@@ -45,13 +32,13 @@ export class Lincoln extends events.EventEmitter {
 
   private readonly options: Options
 
-  constructor(options?: Options | string) {
+  constructor(options?: Partial<Options> | string) {
     super()
-    this.id = uuid.v4()
+    this.id = uuid.generate()
     if (options && typeof options === 'string') {
       options = {
         interceptors: [Debug],
-        namespace: options
+        namespace: options,
       }
     }
     this.options = merge({}, defaults, options)
@@ -89,10 +76,9 @@ export class Lincoln extends events.EventEmitter {
 
   private write(tag: string, parameters: any[]): void {
     const log: Log = {
-      id: uuid.v4(),
-      namespace: this.options.namespace,
+      id: uuid.generate(),
+      namespace: this.tag(tag),
       parameters: parameters || [],
-      tag: this.tag(tag),
       timestamp: Date.now(),
     }
 
