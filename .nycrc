@@ -1,7 +1,6 @@
 {
   "exclude": [
-    "lib/Registrations.js",
-    "tests/**/*.js"
+    "tests/**/*.ts"
   ],
   "sourceMap": true
 }
